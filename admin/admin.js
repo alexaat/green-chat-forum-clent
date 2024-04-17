@@ -20,7 +20,7 @@ const renderAdminPage = () => {
     const html = '<h1> Welcome Admin</h1>'
     document.body.innerHTML = html;
     //Get users
-    /*
+    
     const endpoint = host+"admin/users?" + new URLSearchParams({session_id});
     let headers = new Headers();
     headers.append('Accept', 'application/json');
@@ -31,7 +31,7 @@ const renderAdminPage = () => {
     .then(response => response.json())
     .then(data => console.log(data))
     .catch(err => console.log(err))
-    */
+    
 }
 
 function renderSignUpPage() {
