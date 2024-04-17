@@ -9,17 +9,21 @@ import {
  INVALID_PASSWORD_2,
  ERROR_ACCESSING_DATABASE,
  NO_USER_FOUND,
- INVALID_INPUT
+ INVALID_INPUT,
+ host,
+ JSESSIONID
 } from './constants.js'
 
-const JSESSIONID = 'JSESSIONID';
+import {
+  getCookie,
+  setCookie,
+  deleteCookie
+} from './cookies.js'
 
 let User = null;
 
 //let socket = new WebSocket("ws://localhost:8080/ws");
 let socket;
-let host = 'http://localhost:8080/';
-
 
 // const INVALID_FIRST_NAME = "invalid_first_name";
 // const INVALID_LAST_NAME = "invalid_last_name";
@@ -39,21 +43,21 @@ let host = 'http://localhost:8080/';
 
 renderMainPage();
 
-function getCookie(cname) {
-  let name = cname + "=";
-  let decodedCookie = decodeURIComponent(document.cookie);
-  let ca = decodedCookie.split(';');
-  for(let i = 0; i <ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
-}
+// function getCookie(cname) {
+//   let name = cname + "=";
+//   let decodedCookie = decodeURIComponent(document.cookie);
+//   let ca = decodedCookie.split(';');
+//   for(let i = 0; i <ca.length; i++) {
+//     let c = ca[i];
+//     while (c.charAt(0) == ' ') {
+//       c = c.substring(1);
+//     }
+//     if (c.indexOf(name) == 0) {
+//       return c.substring(name.length, c.length);
+//     }
+//   }
+//   return "";
+// }
 
 function renderLogInForm(e) {
   if (e) e.preventDefault();
@@ -590,17 +594,17 @@ function renderNewPostPage(user){
 
 }
 
-function setCookie(cname, cvalue, exdays) {
-  const d = new Date();
-  d.setTime(d.getTime() + (exdays*24*60*60*1000));
-  let expires = "expires="+ d.toUTCString();
-  let cookieString = cname + "=" + cvalue + ";" + expires + ";path=/";
-  document.cookie = cookieString;
-}
+// function setCookie(cname, cvalue, exdays) {
+//   const d = new Date();
+//   d.setTime(d.getTime() + (exdays*24*60*60*1000));
+//   let expires = "expires="+ d.toUTCString();
+//   let cookieString = cname + "=" + cvalue + ";" + expires + ";path=/";
+//   document.cookie = cookieString;
+// }
 
-function deleteCookie(cname){
-  document.cookie = `${cname}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-}
+// function deleteCookie(cname){
+//   document.cookie = `${cname}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+// }
 
 function signOutHandler(user){
   let session_id = getCookie(JSESSIONID);

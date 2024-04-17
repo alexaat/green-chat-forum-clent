@@ -1,0 +1,12 @@
+.admin-sign-in-container{
+    margin-top: 100px;
+    width: 220px;
+    margin-left: auto;
+    margin-right: auto;  
+}
+
+.admin-sign-in-container input {
+    box-sizing: border-box;
+    margin-bottom: 4px;
+    width: 100%;
+}

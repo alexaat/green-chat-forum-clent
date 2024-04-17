@@ -13,3 +13,7 @@ export const ERROR_PARSING_DATA = "error_parsing_data";
 export const WRONG_METHOD = "error_wrong_method";
 export const INVALID_INPUT = "invalid input";
 export const AUTHORIZATION = "authorization";
+
+export const host = 'http://localhost:8080/';
+export const JSESSIONID = 'JSESSIONID';
+export const ADMIN_JSESSIONID = 'ADMINJSESSIONID';
