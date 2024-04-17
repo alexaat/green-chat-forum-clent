@@ -1,3 +1,17 @@
+import {
+ INVALID_FIRST_NAME,
+ INVALID_LAST_NAME,
+ INVALID_AGE,
+ INVALID_GENDER,
+ INVALID_NICK_NAME,
+ INVALID_EMAIL,
+ INVALID_PASSWORD,
+ INVALID_PASSWORD_2,
+ ERROR_ACCESSING_DATABASE,
+ NO_USER_FOUND,
+ INVALID_INPUT
+} from './constants.js'
+
 const JSESSIONID = 'JSESSIONID';
 
 let User = null;
@@ -7,20 +21,21 @@ let socket;
 let host = 'http://localhost:8080/';
 
 
-const INVALID_FIRST_NAME = "invalid_first_name";
-const INVALID_LAST_NAME = "invalid_last_name";
-const INVALID_AGE = "invalid_age";
-const INVALID_GENDER = "invalid_gender";
-const INVALID_NICK_NAME = "invalid_nick_name";
-const INVALID_EMAIL = "invalid_email";
-const INVALID_PASSWORD = "invalid_password";
-const INVALID_PASSWORD_2 = "invalid_password_2";
-const ERROR_ACCESSING_DATABASE = "error_accessing_database";
-const NO_USER_FOUND = "no_user_found";
-const ERROR_READING_DATA = "error_reading_data";
-const ERROR_PARSING_DATA = "error_parsing_data";
-const WRONG_METHOD = "error_wrong_method";
-const INVALID_INPUT = "invalid input";
+// const INVALID_FIRST_NAME = "invalid_first_name";
+// const INVALID_LAST_NAME = "invalid_last_name";
+// const INVALID_AGE = "invalid_age";
+// const INVALID_GENDER = "invalid_gender";
+// const INVALID_NICK_NAME = "invalid_nick_name";
+// const INVALID_EMAIL = "invalid_email";
+// const INVALID_PASSWORD = "invalid_password";
+// const INVALID_PASSWORD_2 = "invalid_password_2";
+// const ERROR_ACCESSING_DATABASE = "error_accessing_database";
+// const NO_USER_FOUND = "no_user_found";
+// const ERROR_READING_DATA = "error_reading_data";
+// const ERROR_PARSING_DATA = "error_parsing_data";
+// const WRONG_METHOD = "error_wrong_method";
+// const INVALID_INPUT = "invalid input";
+// const AUTHORIZATION = "authorization";
 
 renderMainPage();
 
@@ -373,8 +388,7 @@ function renderMainPage(){
     }
 
     data.payload.posts.forEach(post => { contentPosts += createPostElenemt(post, true) });   
-    
-    
+  
     
     contentPosts+=`</div>`;
 
@@ -470,8 +484,8 @@ function renderMainPage(){
     }, 1000));
     
     makeWebSocketConnection(data.payload.user.session_id);        
-  });  
-   
+  }); 
+      
 } 
 
 function renderNewPostPage(user){
