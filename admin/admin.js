@@ -3,6 +3,11 @@ import {
     ADMIN_JSESSIONID
 } from '../constants.js';
 
+import {
+    getCookie,
+    setCookie,
+    deleteCookie
+  } from '../cookies.js';
 
 const renderAdminPage = () => {
 
@@ -12,7 +17,10 @@ const renderAdminPage = () => {
         renderSignUpPage();
         return;
     }
+    const html = '<h1> Welcome Admin</h1>'
+    document.body.innerHTML = html;
     //Get users
+    /*
     const endpoint = host+"admin/users?" + new URLSearchParams({session_id});
     let headers = new Headers();
     headers.append('Accept', 'application/json');
@@ -23,6 +31,7 @@ const renderAdminPage = () => {
     .then(response => response.json())
     .then(data => console.log(data))
     .catch(err => console.log(err))
+    */
 }
 
 function renderSignUpPage() {
@@ -58,16 +67,16 @@ function renderSignUpPage() {
         }
     )
     .then(response => response.json())
-    .then(data =>{
+    .then(data =>{        
         if(data.error){
             showSignUpError(data.error);
           }else{        
-            setCookie(ADMIN_JSESSIONID, data.payload.user.session_id, 1);      
+            setCookie(ADMIN_JSESSIONID, data.payload.session_id, 1);      
             renderAdminPage();       
           }
     })
     .catch(err => console.log(err));
-        console.log(err)
+       
     });
 
 }
