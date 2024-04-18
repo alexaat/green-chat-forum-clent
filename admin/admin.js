@@ -35,6 +35,15 @@ const renderAdminPage = () => {
         }      
     });
 
+    const postsPanel = document.querySelector('#posts-panel');
+    postsPanel.addEventListener('click', e => {
+        console.log(e.target)
+        if(e.target.className === 'delete-post-button'){
+            const id = e.target.parentElement.parentElement.dataset.id;
+            deletePost(id);
+        }
+    })
+
     //Get users    
     let endpoint = host+"admin/users?" + new URLSearchParams({session_id});
     let headers = new Headers();
