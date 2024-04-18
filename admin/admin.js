@@ -1,6 +1,7 @@
 import {
     host,
-    ADMIN_JSESSIONID
+    ADMIN_JSESSIONID,
+    AUTHORIZATION
 } from '../constants.js';
 
 import {
@@ -17,8 +18,19 @@ const renderAdminPage = () => {
         renderSignUpPage();
         return;
     }
-    const html = '<h1> Welcome Admin</h1>'
+    const html = `
+    <h1> Welcome Admin</h1>
+    <div id='users-panel'></div>    `
     document.body.innerHTML = html;
+    //Add Click listeners
+    const usersPanel = document.querySelector('#users-panel');
+    usersPanel.addEventListener('click', e => {
+        if(e.target.className === 'delete-user-button'){
+            const id = e.target.parentElement.parentElement.dataset.id
+            deleteUser(id);
+        }      
+    });
+
     //Get users
     
     const endpoint = host+"admin/users?" + new URLSearchParams({session_id});
@@ -29,7 +41,20 @@ const renderAdminPage = () => {
         {method: 'GET', headers: headers}
     )
     .then(response => response.json())
-    .then(data => console.log(data))
+    .then(data => {
+        console.log('data ',data)
+        if(data.error) {
+            if(data.error.type === AUTHORIZATION){
+                renderSignUpPage()
+            }else {
+                throw new Error(data.error)
+            }
+            return;            
+        }
+        if(data.payload) {
+            data.payload.forEach(user => renderUserComponent(user));
+        }
+    })
     .catch(err => console.log(err))
     
 }
@@ -83,6 +108,44 @@ function renderSignUpPage() {
 
 function showSignUpError(error) {
     console.log(error)
+}
+
+function renderUserComponent(user) {
+
+    const usersPanel = document.querySelector('#users-panel');
+
+    const html = `
+        <div class='user-container' data-id='${user.id}'>
+            <div class='user-content'>
+                ${user.nick_name} 
+                <input type='button' value='Delete' class='delete-user-button'/>
+            </div>        
+        </div>
+    `;
+
+    usersPanel.innerHTML = html;
+   
+
+}
+
+function deleteUser(id) { 
+    
+    let session_id = getCookie(ADMIN_JSESSIONID);
+    if (!session_id) {
+        renderSignUpPage();
+        return;
+    }
+    const endpoint = host+`admin/users/${id}?` + new URLSearchParams({session_id});
+    let headers = new Headers();
+    headers.append('Accept', 'application/json');
+    fetch(
+        endpoint, {
+            method: 'DELETE',
+            headers: headers}
+        )
+    .then(resp => resp.json())
+    .then(data => console.log(data))
+    .catch(err => console.log(err));
 }
 
 
