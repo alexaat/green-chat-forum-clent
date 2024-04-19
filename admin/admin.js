@@ -23,6 +23,7 @@ const renderAdminPage = () => {
     <div class='admin-page-container'>
     <div id='users-panel'></div>
     <div id='posts-panel'></div>
+    <div id='comments-panel'></div>
     </div>
     `;
     document.body.innerHTML = html;
@@ -36,11 +37,18 @@ const renderAdminPage = () => {
     });
 
     const postsPanel = document.querySelector('#posts-panel');
-    postsPanel.addEventListener('click', e => {
-        console.log(e.target)
+    postsPanel.addEventListener('click', e => {       
         if(e.target.className === 'delete-post-button'){
             const id = e.target.parentElement.parentElement.dataset.id;
             deletePost(id);
+        }
+    });
+
+    const commentsPanel = document.querySelector('#comments-panel');
+    commentsPanel.addEventListener('click', e => {      
+        if(e.target.className === 'delete-comment-button'){
+            const id = e.target.parentElement.parentElement.dataset.id;
+            deleteComment(id);
         }
     })
 
@@ -93,6 +101,32 @@ const renderAdminPage = () => {
         }
     })
     .catch(err => console.log(err))
+    
+    //Get comments
+    endpoint = host+"admin/comments?" + new URLSearchParams({session_id});
+    headers = new Headers();
+    headers.append('Accept', 'application/json');
+    fetch(
+        endpoint,
+        {method: 'GET', headers: headers}
+    )
+    .then(response => response.json())
+    .then(data => {
+        console.log('data comments',data)
+        if(data.error) {
+            if(data.error.type === AUTHORIZATION){
+                renderSignUpPage()
+            }else {
+                throw new Error(data.error)
+            }
+            return;            
+        }
+        if(data.payload) {
+            data.payload.forEach(comment => renderCommentComponent(comment));
+        }
+    })
+    .catch(err => console.log(err))
+
     
 }
 
@@ -176,13 +210,37 @@ function renderPostComponent(post) {
                 </div>                
                 <input type='button' value='Delete' class='delete-post-button'/>            
             </div>
-            <div class='post-content'>             
+            <div class='post-content'>
+                Categories: ${post.categories}
+                <br><br>    
                 ${post.content}               
             </div>        
         </div>
     `;
 
     postsPanel.innerHTML += html;
+}
+
+function renderCommentComponent(comment) {
+    const commentsPanel = document.querySelector('#comments-panel');
+
+    const html = `
+        <div class='comment-container' data-id='${comment.id}'>
+            <div class='comment-header'>
+                <div>
+                ${comment.user_nick_name}
+                <br>
+                ${comment.date}
+                </div>                
+                <input type='button' value='Delete' class='delete-comment-button'/>            
+            </div>
+            <div class='comment-content'>
+                ${comment.content}               
+            </div>        
+        </div>
+    `;
+
+    commentsPanel.innerHTML += html;
 }
 
 function deleteUser(id) { 
@@ -212,6 +270,25 @@ function deletePost(id){
         return;
     }
     const endpoint = host+`admin/posts/${id}?` + new URLSearchParams({session_id});
+    let headers = new Headers();
+    headers.append('Accept', 'application/json');
+    fetch(
+        endpoint, {
+            method: 'DELETE',
+            headers: headers}
+        )
+    .then(resp => resp.json())
+    .then(data => console.log(data))
+    .catch(err => console.log(err));
+}
+
+function deleteComment(id) {
+    let session_id = getCookie(ADMIN_JSESSIONID);
+    if (!session_id) {
+        renderSignUpPage();
+        return;
+    }
+    const endpoint = host+`admin/comments/${id}?` + new URLSearchParams({session_id});
     let headers = new Headers();
     headers.append('Accept', 'application/json');
     fetch(
