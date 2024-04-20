@@ -22,8 +22,7 @@ const renderAdminPage = () => {
     <div class='admin-header'>
     <h1>Welcome Admin</h1>
     <input type='button' value='Sign Out' id='admin-signout-button'/>
-    </div>
-  
+    </div>  
     <div class='admin-page-container'>
     <div id='users-panel'></div>
     <div id='posts-panel'></div>
@@ -38,7 +37,14 @@ const renderAdminPage = () => {
         if(e.target.className === 'delete-user-button'){
             const id = e.target.parentElement.parentElement.dataset.id
             deleteUser(id);
-        }      
+        } else if (e.target.className === 'user-content'){
+            if(e.target.parentElement.classList.contains('active')) {
+                e.target.parentElement.classList.remove('active');
+            } else {
+                e.target.parentElement.classList.add('active');
+            }
+         
+        }     
     });
 
     const postsPanel = document.querySelector('#posts-panel');
@@ -80,7 +86,6 @@ const renderAdminPage = () => {
         })
         .catch(err => console.log(err));   
     });
-
 
     //Get users    
     let endpoint = host+"admin/users?" + new URLSearchParams({session_id});
