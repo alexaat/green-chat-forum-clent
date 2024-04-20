@@ -19,7 +19,11 @@ const renderAdminPage = () => {
         return;
     }
     const html = `
-    <h1> Welcome Admin</h1>
+    <div class='admin-header'>
+    <h1>Welcome Admin</h1>
+    <input type='button' value='Sign Out' id='admin-signout-button'/>
+    </div>
+  
     <div class='admin-page-container'>
     <div id='users-panel'></div>
     <div id='posts-panel'></div>
@@ -27,6 +31,7 @@ const renderAdminPage = () => {
     </div>
     `;
     document.body.innerHTML = html;
+    
     //Add Click listeners
     const usersPanel = document.querySelector('#users-panel');
     usersPanel.addEventListener('click', e => {
@@ -50,7 +55,32 @@ const renderAdminPage = () => {
             const id = e.target.parentElement.parentElement.dataset.id;
             deleteComment(id);
         }
-    })
+    });
+
+    const adminSignoutButton = document.querySelector('#admin-signout-button');
+    adminSignoutButton.addEventListener('click', () => {
+        //Remove session id
+        let endpoint = host+"admin/signup?" + new URLSearchParams({session_id});
+        let headers = new Headers();
+        headers.append('Accept', 'application/json');
+        fetch(
+            endpoint, {
+                method: 'DELETE',
+                headers: headers
+            }
+        )
+        .then(response => response.json())
+        .then(data => {
+            if(data.error) {
+                console.log(data.error)
+            } else {
+                deleteCookie(session_id); 
+                renderSignUpPage();  
+            }
+        })
+        .catch(err => console.log(err));   
+    });
+
 
     //Get users    
     let endpoint = host+"admin/users?" + new URLSearchParams({session_id});
@@ -300,6 +330,5 @@ function deleteComment(id) {
     .then(data => console.log(data))
     .catch(err => console.log(err));
 }
-
 
 renderAdminPage();
