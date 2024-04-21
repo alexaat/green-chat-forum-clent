@@ -10,6 +10,10 @@ import {
     deleteCookie
   } from '../cookies.js';
 
+let users;
+let posts;
+let comments;
+
 const renderAdminPage = () => {
 
     let session_id = getCookie(ADMIN_JSESSIONID);
@@ -24,9 +28,18 @@ const renderAdminPage = () => {
     <input type='button' value='Sign Out' id='admin-signout-button'/>
     </div>  
     <div class='admin-page-container'>
-    <div id='users-panel'></div>
-    <div id='posts-panel'></div>
-    <div id='comments-panel'></div>
+        <div class='panel-container'>
+            <h4>Users</h4>
+            <div id='users-panel'></div>
+        </div>
+        <div class='panel-container'>
+            <h4>Posts</h4>
+            <div id='posts-panel'></div>
+        </div>
+        <div class='panel-container'>
+            <h4>Comments</h4>
+            <div id='comments-panel'></div>
+        </div>
     </div>
     `;
     document.body.innerHTML = html;
@@ -40,8 +53,27 @@ const renderAdminPage = () => {
         } else if (e.target.className === 'user-content'){
             if(e.target.parentElement.classList.contains('active')) {
                 e.target.parentElement.classList.remove('active');
+                renderPosts(posts); 
+                renderComments(comments)             
             } else {
+                //Remove all active before set one active
+                const elements = document.querySelectorAll('.active');
+                elements.forEach(element => element.classList.remove('active'));
+
                 e.target.parentElement.classList.add('active');
+                const id = e.target.parentElement.dataset.id; 
+                const filteredPosts = posts.filter(post => post.user_id === parseInt(id))
+                renderPosts(filteredPosts);
+                renderComments(comments.filter(comment => {                   
+                    for(let i = 0 ; i< filteredPosts.length; i++) {
+                        const post = filteredPosts[i];
+                        if (comment.post_id === post.id) {
+                            return true;
+                        }
+                    }
+                    return false;
+                } 
+            ))               
             }
          
         }     
@@ -87,82 +119,7 @@ const renderAdminPage = () => {
         .catch(err => console.log(err));   
     });
 
-    //Get users    
-    let endpoint = host+"admin/users?" + new URLSearchParams({session_id});
-    let headers = new Headers();
-    headers.append('Accept', 'application/json');
-    fetch(
-        endpoint,
-        {method: 'GET', headers: headers}
-    )
-    .then(response => response.json())
-    .then(data => {
-        console.log('data ',data)
-        if(data.error) {
-            if(data.error.type === AUTHORIZATION){
-                renderSignUpPage()
-            }else {
-                throw new Error(data.error)
-            }
-            return;            
-        }
-        if(data.payload) {
-            data.payload.forEach(user => renderUserComponent(user));
-        }
-    })
-    .catch(err => console.log(err))
-
-    //Get Posts
-    endpoint = host+"admin/posts?" + new URLSearchParams({session_id});
-    headers = new Headers();
-    headers.append('Accept', 'application/json');
-    fetch(
-        endpoint,
-        {method: 'GET', headers: headers}
-    )
-    .then(response => response.json())
-    .then(data => {
-        console.log('data posts',data)
-        if(data.error) {
-            if(data.error.type === AUTHORIZATION){
-                renderSignUpPage()
-            }else {
-                throw new Error(data.error)
-            }
-            return;            
-        }
-        if(data.payload) {
-            data.payload.forEach(post => renderPostComponent(post));
-        }
-    })
-    .catch(err => console.log(err))
-    
-    //Get comments
-    endpoint = host+"admin/comments?" + new URLSearchParams({session_id});
-    headers = new Headers();
-    headers.append('Accept', 'application/json');
-    fetch(
-        endpoint,
-        {method: 'GET', headers: headers}
-    )
-    .then(response => response.json())
-    .then(data => {
-        console.log('data comments',data)
-        if(data.error) {
-            if(data.error.type === AUTHORIZATION){
-                renderSignUpPage()
-            }else {
-                throw new Error(data.error)
-            }
-            return;            
-        }
-        if(data.payload) {
-            data.payload.forEach(comment => renderCommentComponent(comment));
-        }
-    })
-    .catch(err => console.log(err))
-
-    
+    fetchData();    
 }
 
 function renderSignUpPage() {
@@ -334,6 +291,110 @@ function deleteComment(id) {
     .then(resp => resp.json())
     .then(data => console.log(data))
     .catch(err => console.log(err));
+}
+
+function fetchData(){
+    let session_id = getCookie(ADMIN_JSESSIONID);
+
+    if (!session_id) {
+        renderSignUpPage();
+        return;
+    }
+
+    //Get users    
+    let endpoint = host+"admin/users?" + new URLSearchParams({session_id});
+    let headers = new Headers();
+    headers.append('Accept', 'application/json');
+    fetch(
+        endpoint,
+        {method: 'GET', headers: headers}
+    )
+    .then(response => response.json())
+    .then(data => {
+        console.log('data ',data)
+        if(data.error) {
+            if(data.error.type === AUTHORIZATION){
+                renderSignUpPage()
+            }else {
+                throw new Error(data.error)
+            }
+            return;            
+        }
+        if(data.payload) {
+            users = data.payload;
+            renderUsers(users);           
+        }
+    })
+    .catch(err => console.log(err))
+
+    //Get Posts
+    endpoint = host+"admin/posts?" + new URLSearchParams({session_id});
+    headers = new Headers();
+    headers.append('Accept', 'application/json');
+    fetch(
+        endpoint,
+        {method: 'GET', headers: headers}
+    )
+    .then(response => response.json())
+    .then(data => {
+        console.log('data posts',data)
+        if(data.error) {
+            if(data.error.type === AUTHORIZATION){
+                renderSignUpPage()
+            }else {
+                throw new Error(data.error)
+            }
+            return;            
+        }
+        if(data.payload) {
+            posts = data.payload;
+            renderPosts(posts);            
+        }
+    })
+    .catch(err => console.log(err))
+    
+    //Get comments
+    endpoint = host+"admin/comments?" + new URLSearchParams({session_id});
+    headers = new Headers();
+    headers.append('Accept', 'application/json');
+    fetch(
+        endpoint,
+        {method: 'GET', headers: headers}
+    )
+    .then(response => response.json())
+    .then(data => {
+        console.log('data comments',data)
+        if(data.error) {
+            if(data.error.type === AUTHORIZATION){
+                renderSignUpPage()
+            }else {
+                throw new Error(data.error)
+            }
+            return;            
+        }
+        if(data.payload) {
+            comments = data.payload;
+            renderComments(comments);           
+        }
+    })
+    .catch(err => console.log(err))
+}
+
+function renderUsers(users) {
+    users.forEach(user => renderUserComponent(user));
+}
+
+function renderPosts(posts) {
+    const postsPanel = document.querySelector('#posts-panel');
+    postsPanel.innerHTML = '';
+    posts.forEach(post => renderPostComponent(post));
+}
+
+function renderComments(comments) {
+    
+    const commentsPanel = document.querySelector('#comments-panel');
+    commentsPanel.innerHTML = '';
+    comments.forEach(comment => renderCommentComponent(comment));
 }
 
 renderAdminPage();
