@@ -105,3 +105,20 @@ input[type=button]{
     border-width: 2px;
 }
 
+.date{
+    font-size: 10px;
+}
+
+.post-info{
+    padding: 4px;
+    background: #ccc;
+    font-size: 12px;
+}
+
+.post-info-header{
+    font-size: 16px;
+    font-weight: 400;
+    padding-bottom: 4px;
+}
+
+

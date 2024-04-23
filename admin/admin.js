@@ -80,10 +80,28 @@ const renderAdminPage = () => {
     });
 
     const postsPanel = document.querySelector('#posts-panel');
-    postsPanel.addEventListener('click', e => {       
+    postsPanel.addEventListener('click', e => {  
         if(e.target.className === 'delete-post-button'){
             const id = e.target.parentElement.parentElement.dataset.id;
             deletePost(id);
+        } else {
+            //Get Post id
+            let postContainer = e.target
+            console.log('postContainer ',postContainer)
+
+
+            while (postContainer.className !== 'post-container'){
+                postContainer = postContainer.parentElement;                
+            }
+            const id = postContainer.dataset.id;
+            if (postContainer.classList.contains('active')){
+                postContainer.classList.remove('active')
+            }else {
+                postContainer.classList.add('active')
+            }
+                     
+
+
         }
     });
 
@@ -198,7 +216,9 @@ function renderPostComponent(post) {
                 <div>
                     ${post.nick_name}
                     <br>
-                    ${post.date}
+                    <div class='date'>
+                        ${dateFormat(post.date)}
+                    </div>
                 </div>                
                 <input type='button' value='Delete' class='delete-post-button'/>            
             </div>
@@ -216,19 +236,33 @@ function renderPostComponent(post) {
 function renderCommentComponent(comment) {
     const commentsPanel = document.querySelector('#comments-panel');
 
+    console.log('comment ',comment)
+
     const html = `
         <div class='comment-container' data-id='${comment.id}'>
             <div class='comment-header'>
                 <div>
                 ${comment.user_nick_name}
                 <br>
-                ${comment.date}
+                <div class='date'>
+                    ${dateFormat(comment.date)}
+                </div>
                 </div>                
                 <input type='button' value='Delete' class='delete-comment-button'/>            
             </div>
             <div class='comment-content'>
                 ${comment.content}               
-            </div>        
+            </div>
+            <div class='post-info'>
+                <div class='post-info-header'>Post Info</div>
+                Post Id: ${comment.post_id}
+                <br>
+                Post Date: ${dateFormat(posts.filter(post => post.id === comment.post_id)[0].date)}
+                <br>
+                Post Content: ${posts.filter(post => post.id === comment.post_id)[0].content}
+               
+            </div>
+            
         </div>
     `;
 
@@ -395,6 +429,10 @@ function renderComments(comments) {
     const commentsPanel = document.querySelector('#comments-panel');
     commentsPanel.innerHTML = '';
     comments.forEach(comment => renderCommentComponent(comment));
+}
+
+function dateFormat(date) {
+    return (new Date(date)).toUTCString().slice(0, -3);
 }
 
 renderAdminPage();
