@@ -14,6 +14,9 @@ let users;
 let posts;
 let comments;
 
+let filterUserId = undefined;
+let filterPostId = undefined;
+
 const renderAdminPage = () => {
 
     let session_id = getCookie(ADMIN_JSESSIONID);
@@ -53,29 +56,55 @@ const renderAdminPage = () => {
         } else if (e.target.className === 'user-content'){
             if(e.target.parentElement.classList.contains('active')) {
                 e.target.parentElement.classList.remove('active');
-                renderPosts(posts); 
-                renderComments(comments)             
+                
+                filterUserId = undefined;
+                renderPosts(filterPosts());                
+                renderComments(filterComments());      
+         
             } else {
                 //Remove all active before set one active
-                const elements = document.querySelectorAll('.active');
+                const elements = document.querySelectorAll('.user-container');
                 elements.forEach(element => element.classList.remove('active'));
-
                 e.target.parentElement.classList.add('active');
-                const id = e.target.parentElement.dataset.id; 
-                const filteredPosts = posts.filter(post => post.user_id === parseInt(id))
-                renderPosts(filteredPosts);
-                renderComments(comments.filter(comment => {                   
-                    for(let i = 0 ; i< filteredPosts.length; i++) {
-                        const post = filteredPosts[i];
-                        if (comment.post_id === post.id) {
-                            return true;
-                        }
-                    }
-                    return false;
-                } 
-            ))               
+
+                filterUserId = e.target.parentElement.dataset.id; 
+                renderPosts(filterPosts());                
+                renderComments(filterComments());                   
+           
             }
          
+        } else if (e.target.className === 'ban-user-button') {
+            const banButton = e.target;   
+            const id = banButton.parentElement.parentElement.dataset.id;
+
+            const status = users.filter(user => user.id === parseInt(id))[0].status
+            const isBanned = status === 'banned'
+
+
+            banButton.addEventListener('click', () => {
+                let endpoint = host+`admin/users/${id}?` + new URLSearchParams({session_id});
+                let headers = new Headers();
+                headers.append('Accept', 'application/json');
+                headers.append('Content-Type','application/x-www-form-urlencoded');
+                fetch(
+                    endpoint, {
+                        method: 'PATCH',
+                        headers: headers,
+                        body: new URLSearchParams({
+                            'ban' : !isBanned                    
+                          })
+                    }
+                )
+                .then(response => response.json())
+                .then(data => {
+                    if(data.error) {
+                        console.log(data.error)
+                    } else {               
+                        renderAdminPage(); 
+                    }
+                })
+                .catch(err => console.log(err));   
+            });
         }     
     });
 
@@ -87,21 +116,22 @@ const renderAdminPage = () => {
         } else {
             //Get Post id
             let postContainer = e.target
-            console.log('postContainer ',postContainer)
-
-
-            while (postContainer.className !== 'post-container'){
+           
+            while (!postContainer.classList.contains('post-container')){
                 postContainer = postContainer.parentElement;                
             }
             const id = postContainer.dataset.id;
             if (postContainer.classList.contains('active')){
-                postContainer.classList.remove('active')
+                postContainer.classList.remove('active');
+                filterPostId = undefined
             }else {
-                postContainer.classList.add('active')
+                //De-select posts
+                const elements = document.querySelectorAll('.post-container');
+                elements.forEach(element => element.classList.remove('active'));
+                postContainer.classList.add('active');
+                filterPostId = id;
             }
-                     
-
-
+            renderComments(filterComments());
         }
     });
 
@@ -137,6 +167,7 @@ const renderAdminPage = () => {
         .catch(err => console.log(err));   
     });
 
+   
     fetchData();    
 }
 
@@ -194,10 +225,18 @@ function showSignUpError(error) {
 function renderUserComponent(user) {
 
     const usersPanel = document.querySelector('#users-panel');
+    
+    let ban = 'Ban';
+    if (user.status && user.status === 'banned') {
+        ban = 'Un-ban';
+    }  
+    
     const html = `
         <div class='user-container' data-id='${user.id}'>
             <div class='user-content'>
                 ${user.nick_name} 
+
+                <input type='button' value='${ban}' class='ban-user-button'/>
                 <input type='button' value='Delete' class='delete-user-button'/>
             </div>        
         </div>
@@ -433,6 +472,38 @@ function renderComments(comments) {
 
 function dateFormat(date) {
     return (new Date(date)).toUTCString().slice(0, -3);
+}
+
+function filterPosts(){
+    let filtered = posts;
+    if(filterUserId) {
+        filtered = filtered.filter(post => post.user_id === parseInt(filterUserId)); 
+    }
+    return filtered;
+}
+
+function filterComments() {
+    let filtered = comments;
+
+    const filteredPosts = filterPosts();
+
+    if(filterUserId) {
+        filtered = filtered.filter(comment => {                   
+            for(let i = 0 ; i< filteredPosts.length; i++) {
+                const post = filteredPosts[i];
+                if (comment.post_id === post.id) {
+                    return true;
+                }
+            }
+            return false;
+        })
+    }
+
+    if(filterPostId) {
+        filtered = filtered.filter(comment => comment.post_id == filterPostId)
+    }
+
+    return filtered;
 }
 
 renderAdminPage();

@@ -58,6 +58,7 @@ input[type=button]{
     border-radius: 4px;
     box-shadow: 6px 6px 2px 1px rgba(0, 0, 255, .2);   
     margin-bottom: 12px;
+    cursor: pointer;
 }
 
 .post-content{
