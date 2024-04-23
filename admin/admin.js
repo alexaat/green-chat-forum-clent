@@ -224,6 +224,8 @@ function showSignUpError(error) {
 
 function renderUserComponent(user) {
 
+    console.log('user ', user)
+
     const usersPanel = document.querySelector('#users-panel');
     
     let ban = 'Ban';
@@ -453,7 +455,7 @@ function fetchData(){
     .catch(err => console.log(err))
 }
 
-function renderUsers(users) {
+function renderUsers(users) {    
     users.forEach(user => renderUserComponent(user));
 }
 
