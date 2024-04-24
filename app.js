@@ -25,39 +25,7 @@ let User = null;
 //let socket = new WebSocket("ws://localhost:8080/ws");
 let socket;
 
-// const INVALID_FIRST_NAME = "invalid_first_name";
-// const INVALID_LAST_NAME = "invalid_last_name";
-// const INVALID_AGE = "invalid_age";
-// const INVALID_GENDER = "invalid_gender";
-// const INVALID_NICK_NAME = "invalid_nick_name";
-// const INVALID_EMAIL = "invalid_email";
-// const INVALID_PASSWORD = "invalid_password";
-// const INVALID_PASSWORD_2 = "invalid_password_2";
-// const ERROR_ACCESSING_DATABASE = "error_accessing_database";
-// const NO_USER_FOUND = "no_user_found";
-// const ERROR_READING_DATA = "error_reading_data";
-// const ERROR_PARSING_DATA = "error_parsing_data";
-// const WRONG_METHOD = "error_wrong_method";
-// const INVALID_INPUT = "invalid input";
-// const AUTHORIZATION = "authorization";
-
 renderMainPage();
-
-// function getCookie(cname) {
-//   let name = cname + "=";
-//   let decodedCookie = decodeURIComponent(document.cookie);
-//   let ca = decodedCookie.split(';');
-//   for(let i = 0; i <ca.length; i++) {
-//     let c = ca[i];
-//     while (c.charAt(0) == ' ') {
-//       c = c.substring(1);
-//     }
-//     if (c.indexOf(name) == 0) {
-//       return c.substring(name.length, c.length);
-//     }
-//   }
-//   return "";
-// }
 
 function renderLogInForm(e) {
   if (e) e.preventDefault();
@@ -399,7 +367,6 @@ function renderMainPage(){
     //Messages
     let contentMessages = createMessagesSection();
 
-
     //Work window container
    let  contentworkingWindow = `
    <div class="working-window">
@@ -594,18 +561,6 @@ function renderNewPostPage(user){
 
 }
 
-// function setCookie(cname, cvalue, exdays) {
-//   const d = new Date();
-//   d.setTime(d.getTime() + (exdays*24*60*60*1000));
-//   let expires = "expires="+ d.toUTCString();
-//   let cookieString = cname + "=" + cvalue + ";" + expires + ";path=/";
-//   document.cookie = cookieString;
-// }
-
-// function deleteCookie(cname){
-//   document.cookie = `${cname}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-// }
-
 function signOutHandler(user){
   let session_id = getCookie(JSESSIONID);
   if(session_id){
@@ -688,7 +643,6 @@ function makeWebSocketConnection(session_id){
      
       let m = JSON.parse(message.data.toString())   
 
- 
       if(m.online_users){
 
         let activeUsersElement = document.getElementById('active-users');
@@ -699,7 +653,6 @@ function makeWebSocketConnection(session_id){
         else{
           activeUsersElement.style.display = 'block';
         }
-
 
         document.getElementById('active-users').innerHTML = '';
         let online_users = m.online_users;  
