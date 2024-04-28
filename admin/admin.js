@@ -76,35 +76,31 @@ const renderAdminPage = () => {
         } else if (e.target.className === 'ban-user-button') {
             const banButton = e.target;   
             const id = banButton.parentElement.parentElement.dataset.id;
-
-            const status = users.filter(user => user.id === parseInt(id))[0].status
-            const isBanned = status === 'banned'
-
-
-            banButton.addEventListener('click', () => {
-                let endpoint = host+`admin/users/${id}?` + new URLSearchParams({session_id});
-                let headers = new Headers();
-                headers.append('Accept', 'application/json');
-                headers.append('Content-Type','application/x-www-form-urlencoded');
-                fetch(
-                    endpoint, {
-                        method: 'PATCH',
-                        headers: headers,
-                        body: new URLSearchParams({
-                            'ban' : !isBanned                    
-                          })
-                    }
-                )
-                .then(response => response.json())
-                .then(data => {
-                    if(data.error) {
-                        console.log(data.error)
-                    } else {               
-                        renderAdminPage(); 
-                    }
-                })
-                .catch(err => console.log(err));   
-            });
+            const status = users.filter(user => user.id === parseInt(id))[0].status;           
+            const isBanned = status === 'banned';
+            let endpoint = host+`admin/users/${id}?` + new URLSearchParams({session_id});
+            let headers = new Headers();
+            headers.append('Accept', 'application/json');
+            headers.append('Content-Type','application/x-www-form-urlencoded');
+            fetch(
+                endpoint, {
+                    method: 'PATCH',
+                    headers: headers,
+                    body: new URLSearchParams({
+                        'ban' : !isBanned                    
+                      })
+                }
+            )
+            .then(response => response.json())
+            .then(data => {
+                console.log('ban result ', data)
+                if(data.error) {
+                    console.log(data.error)
+                } else {               
+                    renderAdminPage(); 
+                }
+            })
+            .catch(err => console.log(err));   
         }     
     });
 
@@ -224,8 +220,6 @@ function showSignUpError(error) {
 
 function renderUserComponent(user) {
 
-    console.log('user ', user)
-
     const usersPanel = document.querySelector('#users-panel');
     
     let ban = 'Ban';
@@ -236,8 +230,7 @@ function renderUserComponent(user) {
     const html = `
         <div class='user-container' data-id='${user.id}'>
             <div class='user-content'>
-                ${user.nick_name} 
-
+                ${user.nick_name}
                 <input type='button' value='${ban}' class='ban-user-button'/>
                 <input type='button' value='Delete' class='delete-user-button'/>
             </div>        
@@ -276,8 +269,6 @@ function renderPostComponent(post) {
 
 function renderCommentComponent(comment) {
     const commentsPanel = document.querySelector('#comments-panel');
-
-    console.log('comment ',comment)
 
     const html = `
         <div class='comment-container' data-id='${comment.id}'>
@@ -386,7 +377,6 @@ function fetchData(){
     )
     .then(response => response.json())
     .then(data => {
-        console.log('data ',data)
         if(data.error) {
             if(data.error.type === AUTHORIZATION){
                 renderSignUpPage()
@@ -412,7 +402,6 @@ function fetchData(){
     )
     .then(response => response.json())
     .then(data => {
-        console.log('data posts',data)
         if(data.error) {
             if(data.error.type === AUTHORIZATION){
                 renderSignUpPage()
@@ -438,7 +427,6 @@ function fetchData(){
     )
     .then(response => response.json())
     .then(data => {
-        console.log('data comments',data)
         if(data.error) {
             if(data.error.type === AUTHORIZATION){
                 renderSignUpPage()
