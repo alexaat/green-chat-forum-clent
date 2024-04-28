@@ -93,7 +93,6 @@ const renderAdminPage = () => {
             )
             .then(response => response.json())
             .then(data => {
-                console.log('ban result ', data)
                 if(data.error) {
                     console.log(data.error)
                 } else {               
@@ -163,7 +162,6 @@ const renderAdminPage = () => {
         .catch(err => console.log(err));   
     });
 
-   
     fetchData();    
 }
 
@@ -289,9 +287,9 @@ function renderCommentComponent(comment) {
                 <div class='post-info-header'>Post Info</div>
                 Post Id: ${comment.post_id}
                 <br>
-                Post Date: ${dateFormat(posts.filter(post => post.id === comment.post_id)[0].date)}
+                Post Date: ${posts && dateFormat(posts.filter(post => post.id === comment.post_id)[0].date)}
                 <br>
-                Post Content: ${posts.filter(post => post.id === comment.post_id)[0].content}
+                Post Content: ${posts && posts.filter(post => post.id === comment.post_id)[0].content}
                
             </div>
             
@@ -401,7 +399,7 @@ function fetchData(){
         {method: 'GET', headers: headers}
     )
     .then(response => response.json())
-    .then(data => {
+    .then(data => {       
         if(data.error) {
             if(data.error.type === AUTHORIZATION){
                 renderSignUpPage()
@@ -413,34 +411,35 @@ function fetchData(){
         if(data.payload) {
             posts = data.payload;
             renderPosts(posts);            
+
+            //Get comments
+            endpoint = host+"admin/comments?" + new URLSearchParams({session_id});
+            headers = new Headers();
+            headers.append('Accept', 'application/json');
+            fetch(
+                endpoint,
+                {method: 'GET', headers: headers}
+            )
+            .then(response => response.json())
+            .then(data => {       
+                if(data.error) {
+                    if(data.error.type === AUTHORIZATION){
+                        renderSignUpPage()
+                    }else {
+                        throw new Error(data.error)
+                    }
+                    return;            
+                }
+                if(data.payload) {
+                    comments = data.payload;
+                    renderComments(comments);        
+                }
+            }) 
+
         }
     })
-    .catch(err => console.log(err))
-    
-    //Get comments
-    endpoint = host+"admin/comments?" + new URLSearchParams({session_id});
-    headers = new Headers();
-    headers.append('Accept', 'application/json');
-    fetch(
-        endpoint,
-        {method: 'GET', headers: headers}
-    )
-    .then(response => response.json())
-    .then(data => {
-        if(data.error) {
-            if(data.error.type === AUTHORIZATION){
-                renderSignUpPage()
-            }else {
-                throw new Error(data.error)
-            }
-            return;            
-        }
-        if(data.payload) {
-            comments = data.payload;
-            renderComments(comments);           
-        }
-    })
-    .catch(err => console.log(err))
+    .catch(err => console.log(err))   
+
 }
 
 function renderUsers(users) {    
