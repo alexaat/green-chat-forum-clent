@@ -589,7 +589,7 @@ function signOutHandler(user){
 function newPostHandler(content, categories){
   let session_id = getCookie(JSESSIONID);
 
-  const endpoint = host+"newpost";    
+  const endpoint = host+"newpost?" + new URLSearchParams({session_id});    
   let headers = new Headers();
   headers.append('Accept', 'application/json');
   headers.append('Content-Type','application/x-www-form-urlencoded');
@@ -598,7 +598,7 @@ function newPostHandler(content, categories){
     method: 'POST',
     headers: headers,
     body: new URLSearchParams({
-      'session_id' : session_id,
+      // 'session_id' : session_id,
       'content' : content,
       'categories': categories
     })
@@ -1002,7 +1002,7 @@ function renderCommentsPage(post_id){
 
           let post_id = document.getElementsByClassName('post-container')[0].dataset.id;
 
-          const endpoint = host+"comments";
+          const endpoint = host+"comments?" + new URLSearchParams({session_id});
           let headers = new Headers();
           headers.append('Accept', 'application/json');
           headers.append('Content-Type','application/x-www-form-urlencoded');
@@ -1010,7 +1010,7 @@ function renderCommentsPage(post_id){
               method: 'POST',
               headers: headers,
               body: new URLSearchParams({
-                'session_id': session_id,
+                // 'session_id': session_id,
                 'post_id': post_id, 
                 'comment' : comment                
               })
