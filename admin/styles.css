@@ -122,4 +122,37 @@ input[type=button]{
     padding-bottom: 4px;
 }
 
+.category-item{
+    margin-bottom: 8px;
+    padding: 4px;
+    border: 1px solid #aaa
+}
+  
+.category-item:hover{
+   cursor: pointer;
+}
+
+.delete-category-dialog{
+    z-index: 1;
+    position: absolute;
+    top: 250px;
+    left:0;
+    right:0;
+    margin-left:auto;
+    margin-right:auto;
+    border: 2px solid #666;
+    padding: 32px;
+    position: fixed;
+    background: white;
+    width: 200px;
+}
+
+.dialog-controls{
+    margin-top: 8px;
+    width: 100%;
+    display: flex;
+    justify-content: end;
+    gap: 16px;
+}
+
 

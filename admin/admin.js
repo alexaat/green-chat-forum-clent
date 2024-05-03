@@ -13,6 +13,7 @@ import {
 let users;
 let posts;
 let comments;
+let categories;
 
 let filterUserId = undefined;
 let filterPostId = undefined;
@@ -43,6 +44,10 @@ const renderAdminPage = () => {
             <h4>Comments</h4>
             <div id='comments-panel'></div>
         </div>
+        <div class='categories-container'>
+            <h4>Categories</h4>
+        <div id='categories-panel'></div>
+    </div>
     </div>
     `;
     document.body.innerHTML = html;
@@ -299,6 +304,15 @@ function renderCommentComponent(comment) {
     commentsPanel.innerHTML += html;
 }
 
+function renderCategoryComponent(category){
+    const categoriesPanel = document.querySelector('#categories-panel');
+    const html = `<div class='category-item'>
+        ${category}
+    </div>`;
+
+    categoriesPanel.innerHTML += html;
+}
+
 function deleteUser(id) { 
     
     let session_id = getCookie(ADMIN_JSESSIONID);
@@ -440,6 +454,31 @@ function fetchData(){
     })
     .catch(err => console.log(err))   
 
+    //Get Categories
+    endpoint = host+"admin/categories?" + new URLSearchParams({session_id});
+    headers = new Headers();
+    headers.append('Accept', 'application/json');
+    fetch(
+        endpoint,
+        {method: 'GET', headers: headers}
+    )
+    .then(response => response.json())
+    .then(data => {       
+        if(data.error) {
+            if(data.error.type === AUTHORIZATION){
+                renderSignUpPage()
+            }else {
+                throw new Error(data.error)
+            }
+            return;            
+        }
+        if(data.payload) {
+            categories = data.payload;
+            renderCategories(categories);           
+        }
+    })
+    .catch(err => console.log(err))
+
 }
 
 function renderUsers(users) {    
@@ -452,11 +491,80 @@ function renderPosts(posts) {
     posts.forEach(post => renderPostComponent(post));
 }
 
-function renderComments(comments) {
-    
+function renderComments(comments) {    
     const commentsPanel = document.querySelector('#comments-panel');
     commentsPanel.innerHTML = '';
     comments.forEach(comment => renderCommentComponent(comment));
+}
+
+function renderCategories(categories) {
+    const categoriesPanel = document.querySelector('#categories-panel');
+    categoriesPanel.innerHTML = '';
+    categories.forEach(category => renderCategoryComponent(category));
+
+    //Add Category
+    const html = `
+    <div>
+        <input type='text' name='new-category' placeholder='new category ...' id='new-category-input'>
+        <input type='button' value='submit' id='save-categories'>
+    </div>
+    `
+    categoriesPanel.innerHTML += html;
+
+    const submitButton = document.querySelector('#save-categories');
+    submitButton.addEventListener('click', () => {
+        const newCategory = document.querySelector('#new-category-input').value;
+        categories.push(newCategory);
+
+        //Save to db
+        let session_id = getCookie(ADMIN_JSESSIONID);
+        if (!session_id) {
+            renderSignUpPage();
+            return;
+        }
+        const endpoint = host+"admin/categories?" + new URLSearchParams({session_id});
+        const headers = new Headers();
+        headers.append('Accept', 'application/json');
+        headers.append('Content-Type','application/x-www-form-urlencoded');
+        fetch(endpoint, {
+            method: 'POST',
+            headers: headers,
+            body: new URLSearchParams({categories: JSON.stringify(categories)})
+        })
+        .then(response => response.json())
+        .then(data => { 
+            console.log(data)          
+            if(data.error) {
+                if(data.error.type === AUTHORIZATION){
+                    renderSignUpPage()
+                }else if (data.error.message.includes('UNIQUE')){
+                    alert('Category already exists!')
+                    categories.pop();
+                }else if (data.error.message.includes('empty string')){
+                    alert('Empty String!');
+                    categories.pop();
+                } else {
+                    throw new Error(data.error)
+                }
+                return;            
+            }
+            if(data.payload) {
+                categories = data.payload;
+                renderCategories(categories);           
+            }
+        })
+        .catch(err => console.log(err))
+    })
+
+    //Add event listener
+    categoriesPanel.addEventListener('click', e => {
+        if(e.target.classList.contains('category-item')){
+            const category = e.target.textContent;            
+            console.log('category ', category)
+            showDeleteCategoryConfirmationDialog(category);
+        }
+    })
+
 }
 
 function dateFormat(date) {
@@ -493,6 +601,35 @@ function filterComments() {
     }
 
     return filtered;
+}
+
+function showDeleteCategoryConfirmationDialog(category) {
+    const html = `
+        <div class='delete-category-dialog'>
+        Delete category ${category}?<br>
+            <div class='dialog-controls'>
+            <input type='button' value='yes' id='delete-categoty-yes'>
+            <input type='button' value='no' id='delete-categoty-no'>
+            </div>
+        </div>    
+    `
+    document.body.innerHTML += html;
+
+    const yesButton = document.querySelector('#delete-categoty-yes');
+    const noButton = document.querySelector('#delete-categoty-no');
+
+    noButton.addEventListener('click', () => {
+        removeDialog();
+    });
+
+}
+
+function removeDialog(){
+    let deleteCategoryDialog = document.querySelector('.delete-category-dialog');
+    if(deleteCategoryDialog) {
+        deleteCategoryDialog.remove();
+    }
+    deleteCategoryDialog = null;
 }
 
 renderAdminPage();
