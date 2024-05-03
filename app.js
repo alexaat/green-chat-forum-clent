@@ -395,8 +395,7 @@ function renderMainPage(){
     document.getElementById('posts-container').addEventListener('click', (event)=>{
       
       let el = event.target;
-      do{
-       
+      do{       
         if(el.className ==='post-container clickable-box'){
           let postId = el.dataset.id;
           if(postId){
@@ -404,6 +403,12 @@ function renderMainPage(){
             break;
           }
         }
+        const id = el.dataset.id;
+        if(id) {
+          renderMainPage();
+          break;
+        }
+
         el = el.parentElement;
         if(el==null) break;
       }while(el.id !='posts-container')
@@ -629,15 +634,10 @@ function makeWebSocketConnection(session_id){
    //Try to make connection
     socket = new WebSocket(`ws://localhost:8080/ws/${session_id}`);
     //Set Listeners
-    socket.onopen = () => {
-      //alert("Connected");
-    }
-    socket.onclose = (event) => {
-      //socket.send(`user logged out:`);
-      //console.log('Connection is closed');
-    }
-    socket.onerror = (error) => {
-      alert('Connection error');
+    socket.onopen = () => {}
+    socket.onclose = event => {}
+    socket.onerror = error => {
+      alert('Connection error ', error);
     }
     socket.onmessage = (message) => {
      
@@ -672,18 +672,29 @@ function makeWebSocketConnection(session_id){
               <span class="user-element-nick-name">${user.nick_name}</span>`;
             }
 
-            div.addEventListener('click', (e) => {
-              
+            div.addEventListener('click', e => {
+              const chatArea = document.querySelector('#user-messages-container');
+              const messageBox = document.querySelector('#new-message-text-area');
+              const sendButton = document.querySelector('#send-message-button');  
+   
               if(!e.currentTarget.classList.contains('user-selected')){
                 removeUsersSelection();  
                 document.getElementById('chat-messages').dataset.to_id = user.id;
                 document.getElementById('current-chatmate-container').innerText = `Chat with: ${user.nick_name}`;                
-                document.getElementById('user-messages-container').style.display = 'block';             
+                //document.getElementById('user-messages-container').style.display = 'block';             
                 document.getElementById('chat-messages').dataset.page = 1;
                 document.getElementById('new-message-error').style.display = 'none';
+                chatArea.style.display = 'block';
+                messageBox.style.display = 'block';
+                sendButton.style.display = 'block';
                 getMessages(user.id);
                 div.classList.add('user-selected');  
-              } 
+              } else {
+                removeUsersSelection();
+                chatArea.style.display = 'none';
+                messageBox.style.display = 'none';
+                sendButton.style.display = 'none';                
+              }
   
             });
             document.getElementById('active-users').appendChild(div);
@@ -824,6 +835,7 @@ function renderMessages(data){
 
 function removeUsersSelection(){
     let element = document.getElementById('chat-messages');
+  
     delete element.dataset.to_id;
 
     let users = document.getElementById('active-users').childNodes;

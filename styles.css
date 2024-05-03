@@ -181,13 +181,14 @@ form .signup-link a:hover{
   margin-left: auto;
   margin-right: auto;
   width: 400px;
+
   }
 
 .new-post-textarea{
   width: 100%;
   resize: none;
   padding: 4px;
-  border: none;
+  border: 1px solid #eee;
   outline: none;
   box-shadow: inset 2px 2px 2px 0px #ddd;
 }
@@ -233,6 +234,7 @@ form .signup-link a:hover{
   margin-top: 16px;  
   margin-left: auto;
   margin-right: auto;
+  cursor: pointer;
 }
 
 .clickable-box:hover{
@@ -268,6 +270,7 @@ form .signup-link a:hover{
   padding: 8px;
   overflow: scroll;
   display: none;
+  border: 1px solid #eee;
 }
 
 .main-container{
@@ -299,6 +302,7 @@ form .signup-link a:hover{
   box-shadow: inset 2px 2px 2px 0px #ddd;
   overflow: scroll;
   margin-bottom: 16px;
+  border: 1px solid #eee;
 }
 
 #new-message-text-area{
@@ -306,7 +310,7 @@ form .signup-link a:hover{
   margin-top: 4px;
   font-size: 0.7rem;
   padding: 4px;
-  border: none;
+  border: 1px solid #eee;
   outline: none;
   box-shadow: inset 2px 2px 2px 0px #ddd;
   width: 100%;
@@ -342,7 +346,7 @@ form .signup-link a:hover{
   box-shadow: none;
 }
 .user-selected:hover{
-  cursor: default;
+  cursor: pointer;
   box-shadow: none;
 }
 
@@ -491,7 +495,7 @@ hr {
   margin-right: auto;
   margin-bottom: 16px;
   padding: 8px;
-  border: none;
+  border: 1px solid #eee;
   outline: none;
   box-shadow: inset 2px 2px 2px 0px #ddd;
   width: 450px;
@@ -505,6 +509,7 @@ hr {
   width: 450px;
   margin-top: 4px;
   margin-bottom: 16px;
+
 }
 
 #new-comment-error{
