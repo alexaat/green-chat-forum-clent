@@ -132,8 +132,7 @@ input[type=button]{
    cursor: pointer;
 }
 
-.delete-category-dialog{
-    z-index: 1;
+#delete-category-dialog{
     position: absolute;
     top: 250px;
     left:0;

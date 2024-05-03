@@ -559,8 +559,7 @@ function renderCategories(categories) {
     //Add event listener
     categoriesPanel.addEventListener('click', e => {
         if(e.target.classList.contains('category-item')){
-            const category = e.target.textContent;            
-            console.log('category ', category)
+            const category = e.target.textContent;          
             showDeleteCategoryConfirmationDialog(category);
         }
     })
@@ -605,11 +604,11 @@ function filterComments() {
 
 function showDeleteCategoryConfirmationDialog(category) {
     const html = `
-        <div class='delete-category-dialog'>
+        <div id='delete-category-dialog'>
         Delete category ${category}?<br>
             <div class='dialog-controls'>
-            <input type='button' value='yes' id='delete-categoty-yes'>
-            <input type='button' value='no' id='delete-categoty-no'>
+                <input type='button' value='yes' id='delete-categoty-yes'>
+                <input type='button' value='no' id='delete-categoty-no'>
             </div>
         </div>    
     `
@@ -618,18 +617,64 @@ function showDeleteCategoryConfirmationDialog(category) {
     const yesButton = document.querySelector('#delete-categoty-yes');
     const noButton = document.querySelector('#delete-categoty-no');
 
+    yesButton.addEventListener('click', () => {
+        removeDialog();
+        const cat = category.trim();
+        categories = categories.filter(c => c!==cat);
+        
+        //Save to db
+        let session_id = getCookie(ADMIN_JSESSIONID);
+          if (!session_id) {
+              renderSignUpPage();
+              return;
+          }
+        const endpoint = host+"admin/categories?" + new URLSearchParams({session_id});
+        const headers = new Headers();
+        headers.append('Accept', 'application/json');
+        headers.append('Content-Type','application/x-www-form-urlencoded');
+        fetch(endpoint, {
+              method: 'POST',
+              headers: headers,
+              body: new URLSearchParams({categories: JSON.stringify(categories)})
+        })
+        .then(response => response.json())
+        .then(data => {                    
+              if(data.error) {
+                  if(data.error.type === AUTHORIZATION){
+                      renderSignUpPage()
+                  }else if (data.error.message.includes('UNIQUE')){
+                      alert('Category already exists!')
+                      categories.pop();
+                  }else if (data.error.message.includes('empty string')){
+                      alert('Empty String!');
+                      categories.pop();
+                  } else {
+                      throw new Error(data.error)
+                  }
+                  return;            
+              }
+              if(data.payload) {
+                  categories = data.payload;
+                  renderCategories(categories);           
+              }
+          })
+          .catch(err => console.log(err))
+
+    })
+
+
     noButton.addEventListener('click', () => {
         removeDialog();
     });
 
 }
 
-function removeDialog(){
-    let deleteCategoryDialog = document.querySelector('.delete-category-dialog');
+function removeDialog(){   
+    let deleteCategoryDialog = document.querySelector('#delete-category-dialog');
     if(deleteCategoryDialog) {
         deleteCategoryDialog.remove();
-    }
-    deleteCategoryDialog = null;
+    }   
+    renderCategories(categories);
 }
 
 renderAdminPage();
