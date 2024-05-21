@@ -14,6 +14,9 @@ export const WRONG_METHOD = "error_wrong_method";
 export const INVALID_INPUT = "invalid input";
 export const AUTHORIZATION = "authorization";
 
-export const host = 'http://localhost:8080/';
+//export const host = 'http://localhost:8080/';
+
+export const origin = 'green-chat-forum-api-tckbq32ccq-nw.a.run.app';
+export const host = `https://${origin}/`;
 export const JSESSIONID = 'JSESSIONID';
 export const ADMIN_JSESSIONID = 'ADMINJSESSIONID';

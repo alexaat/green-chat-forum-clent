@@ -11,7 +11,8 @@ import {
  NO_USER_FOUND,
  INVALID_INPUT,
  host,
- JSESSIONID
+ JSESSIONID,
+ origin
 } from './constants.js'
 
 import {
@@ -632,7 +633,8 @@ function errorHandler(error){
 function makeWebSocketConnection(session_id){    
   
    //Try to make connection
-    socket = new WebSocket(`ws://localhost:8080/ws/${session_id}`);
+    //socket = new WebSocket(`ws://localhost:8080/ws/${session_id}`);
+    socket = new WebSocket(`ws://${origin}/ws/${session_id}`);
     //Set Listeners
     socket.onopen = () => {}
     socket.onclose = event => {}
@@ -651,7 +653,9 @@ function makeWebSocketConnection(session_id){
           activeUsersElement.style.display = 'none';
         }
         else{
-          activeUsersElement.style.display = 'block';
+          if(activeUsersElement.style){
+            activeUsersElement.style.display = 'block';
+          }        
         }
 
         document.getElementById('active-users').innerHTML = '';
@@ -702,8 +706,7 @@ function makeWebSocketConnection(session_id){
 
       }
       
-      if(m.message){
-        console.log(m.message)
+      if(m.message){        
         let chatMessagesElement = document.getElementById('chat-messages');
         let msg = document.createElement('div');
         let header = document.createElement('div');
@@ -791,8 +794,6 @@ function getMessages(chat_mate_id){
 }
 
 function renderMessages(data){
-  console.log(data);
-
   let chatMessagesElement = document.getElementById('chat-messages');
 
   data.messages.forEach(m => {
