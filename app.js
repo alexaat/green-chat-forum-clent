@@ -23,6 +23,100 @@ import {
 
 let User = null;
 
+let guestData = {
+  users: [
+    {
+      id: 1,
+      nick_name: 'Alice'
+    },
+    {
+      id: 2,
+      nick_name: 'Bob'
+    }
+  ],
+  posts: [
+    {
+      id: 1,
+      user_id: 1,
+      nick_name: 'Alice',
+      number_of_comments: 1,
+      date: 1716890218512,
+      content: "Welcome to Green Chat Forum",
+      categories: ['green apple', 'green grapes']
+    },
+    {
+      id: 2,
+      user_id: 2,
+      nick_name: 'Bob',
+      number_of_comments: 2,
+      date: 1716892672989,
+      content: "What are the best greens?",
+      categories: ['green apple', 'green grapes', 'green pears']
+    }
+  ],
+
+  comments: [
+    {
+      id: 1,
+      post_id: 1,
+      user_id: 2,
+      user_nick_name: 'Bob',
+      date: 1716893048825,
+      content: 'Hi everyone'
+    },
+    {
+      id: 2,
+      post_id: 2,
+      user_id: 1,
+      user_nick_name: 'Alice',
+      date: 1716893189700,
+      content: 'Hi Bob'
+
+    },
+    {
+      id: 3,
+      post_id: 2,
+      user_id: 2,
+      user_nick_name: 'Bob',
+      date: 1716893199317,
+      content: 'Hi Alice'
+    }
+  ],
+  categories: ['green apple', 'green grapes', 'avocado', 'green pears']
+}  
+
+const m1 = {
+  online_users : [
+    {
+      id: 1,  nick_name: 'Alice', on_line: 'false'
+    },
+    {
+      id: 2,  nick_name: 'Bob', on_line: 'false'
+    },
+  ]
+}
+
+const m2 = {
+  online_users : [
+    {
+      id: 1,  nick_name: 'Alice', on_line: 'true'
+    },
+    {
+      id: 2,  nick_name: 'Bob', on_line: 'false'
+    },
+  ]
+}
+
+const m3 = {
+    content: 'Hey',
+    date: 123,
+    from_id: 1,
+    from_nick_name: 'Alice',
+    id: 1,
+    to_id: -1
+}
+const messages = [];
+
 //let socket = new WebSocket("ws://localhost:8080/ws");
 let socket;
 
@@ -40,11 +134,11 @@ function renderLogInForm(e) {
 
         <div class="row">
           <i class="fas fa-user"></i>
-          <input id="signin-username-input" class='login-input' type="text" placeholder="Email or Nick Name" required>
+          <input id="signin-username-input" class='login-input' type="text" placeholder="Email or Nick Name" value='guest' required>
         </div>
         <div class="row">
           <i class="fas fa-lock"></i>
-          <input id="signin-password-input" class='login-input' type="password" placeholder="Password" required>
+          <input id="signin-password-input" class='login-input' type="password" placeholder="Password" required value='guest'>
         </div>        
         <div class="row button">
           <input id='signin-submit-button' type="button" value="Login">
@@ -138,6 +232,29 @@ function signInHandler(){
 
   let passwordNode = document.getElementById('signin-password-input');
   let password = passwordNode.value;
+
+
+  if(userName === 'guest' && password === 'guest'){
+    User = {
+      id: -1, 
+      nick_name: 'Guest'
+    }
+    renderGuestPage(guestData);
+    handleWSMessage(m1);
+    setTimeout(() => {
+      const el = document.querySelector('#active-users');
+      el.innerHTML = '';
+      handleWSMessage(m2);
+      setTimeout(() => {
+        const date = (new Date()).getTime();
+        m3.date = date;
+        messages.push(m3);
+        handleWSMessage({message: m3});
+      }, 3000)
+    }, 3000);
+
+    return;
+  } 
 
   const endpoint = host+"signin";    
   let headers = new Headers();
@@ -336,9 +453,8 @@ function renderMainPage(){
       return;
     }
 
-    if(data.payload.user){
-      
-      User = data.payload.user
+    if(data.payload.user){      
+      User = data.payload.user     
     }else{
       renderLogInForm();
       return;
@@ -633,7 +749,7 @@ function errorHandler(error){
 function makeWebSocketConnection(session_id){    
   
    //Try to make connection
-    //socket = new WebSocket(`ws://localhost:8080/ws/${session_id}`);
+  //socket = new WebSocket(`ws://localhost:8080/ws/${session_id}`);
     socket = new WebSocket(`ws://${origin}/ws/${session_id}`);
     //Set Listeners
     socket.onopen = () => {}
@@ -642,110 +758,127 @@ function makeWebSocketConnection(session_id){
       alert('Connection error ', error);
     }
     socket.onmessage = (message) => {
-     
       let m = JSON.parse(message.data.toString())   
-
-      if(m.online_users){
-
-        let activeUsersElement = document.getElementById('active-users');
-
-        if(m.online_users.length == 0){
-          activeUsersElement.style.display = 'none';
-        }
-        else{
-          if(activeUsersElement.style){
-            activeUsersElement.style.display = 'block';
-          }        
-        }
-
-        document.getElementById('active-users').innerHTML = '';
-        let online_users = m.online_users;  
-      
-        online_users.forEach(user => {     
-  
-            let div = document.createElement('div');
-            div.classList.add('on-line-user-container');
-            
-            if(user.on_line === 'true'){
-              div.innerHTML = `
-              <img src="images/user_online.svg" alt="User OnLine"  width="36" height="36"> 
-              <span class="user-element-nick-name">${user.nick_name}</span>`;
-            }else{
-              div.innerHTML = `
-              <img src="images/user_offline.svg" alt="User OffLine"  width="36" height="36"> 
-              <span class="user-element-nick-name">${user.nick_name}</span>`;
-            }
-
-            div.addEventListener('click', e => {
-              const chatArea = document.querySelector('#user-messages-container');
-              const messageBox = document.querySelector('#new-message-text-area');
-              const sendButton = document.querySelector('#send-message-button');  
-   
-              if(!e.currentTarget.classList.contains('user-selected')){
-                removeUsersSelection();  
-                document.getElementById('chat-messages').dataset.to_id = user.id;
-                document.getElementById('current-chatmate-container').innerText = `Chat with: ${user.nick_name}`;                
-                //document.getElementById('user-messages-container').style.display = 'block';             
-                document.getElementById('chat-messages').dataset.page = 1;
-                document.getElementById('new-message-error').style.display = 'none';
-                chatArea.style.display = 'block';
-                messageBox.style.display = 'block';
-                sendButton.style.display = 'block';
-                getMessages(user.id);
-                div.classList.add('user-selected');  
-              } else {
-                removeUsersSelection();
-                chatArea.style.display = 'none';
-                messageBox.style.display = 'none';
-                sendButton.style.display = 'none';                
-              }
-  
-            });
-            document.getElementById('active-users').appendChild(div);
-        }); 
-
-      }
-      
-      if(m.message){        
-        let chatMessagesElement = document.getElementById('chat-messages');
-        let msg = document.createElement('div');
-        let header = document.createElement('div');
-        header.classList.add('message-header');
-        let body = document.createElement('div');
-        body.classList.add('message-body');
-        msg.appendChild(header);
-        msg.appendChild(document.createElement('hr'));
-        msg.appendChild(body);
-        let date = (new Date(m.message.date)).toUTCString().slice(0, -3);
-
-        if(m.message.from_id === User.id){
-          //My Message      
-          msg.classList.add("my-message-bubble"); 
-          header.innerHTML = `You <br> ${date}`;  
-          body.innerText = m.message.content;
-          chatMessagesElement.insertBefore(msg, chatMessagesElement.childNodes[0]);
-        }else if(m.message.to_id === User.id){
-          //Mate's message
-          if(document.getElementById('user-messages-container').style.display === 'block'){
-            msg.classList.add("mate-message-bubble");
-            header.innerHTML = `${m.message.from_nick_name} <br> ${date}`;
-            body.innerText = m.message.content;
-            chatMessagesElement.insertBefore(msg, chatMessagesElement.childNodes[0]);
-          }else{
-            let users = document.querySelectorAll('.user-element-nick-name');  
-            for(let i = 0; i<users.length; i++ ){
-              if(users[i].innerText === m.message.from_nick_name){
-                users[i].click();
-                break;            
-              }
-            }
-          }
-        }
-      }
+      handleWSMessage(m);
     }    
 }
 
+function handleWSMessage(m){
+
+  if(m.online_users){
+
+    let activeUsersElement = document.getElementById('active-users');
+
+    if(m.online_users.length == 0){
+      activeUsersElement.style.display = 'none';
+    }
+    else{
+      if(activeUsersElement.style){
+        activeUsersElement.style.display = 'block';
+      }        
+    }
+
+    document.getElementById('active-users').innerHTML = '';
+    let online_users = m.online_users;  
+  
+    online_users.forEach(user => {     
+
+        let div = document.createElement('div');
+        div.classList.add('on-line-user-container');
+        
+        if(user.on_line === 'true'){
+          div.innerHTML = `
+          <img src="images/user_online.svg" alt="User OnLine"  width="36" height="36"> 
+          <span class="user-element-nick-name">${user.nick_name}</span>`;
+        }else{
+          div.innerHTML = `
+          <img src="images/user_offline.svg" alt="User OffLine"  width="36" height="36"> 
+          <span class="user-element-nick-name">${user.nick_name}</span>`;
+        }
+
+        div.addEventListener('click', e => {
+          const chatArea = document.querySelector('#user-messages-container');
+          const messageBox = document.querySelector('#new-message-text-area');
+          const sendButton = document.querySelector('#send-message-button');  
+
+          if(!e.currentTarget.classList.contains('user-selected')){
+            removeUsersSelection();  
+            document.getElementById('chat-messages').dataset.to_id = user.id;
+            document.getElementById('current-chatmate-container').innerText = `Chat with: ${user.nick_name}`;                
+            document.getElementById('chat-messages').dataset.page = 1;
+            document.getElementById('new-message-error').style.display = 'none';
+            chatArea.style.display = 'block';
+            messageBox.style.display = 'block';
+            sendButton.style.display = 'block';
+            getMessages(user.id);
+            div.classList.add('user-selected');  
+          } else {
+            removeUsersSelection();
+            chatArea.style.display = 'none';
+            messageBox.style.display = 'none';
+            sendButton.style.display = 'none';                
+          }
+
+        });
+        document.getElementById('active-users').appendChild(div);
+    }); 
+  }
+  
+  if(m.message){        
+    let chatMessagesElement = document.getElementById('chat-messages');
+    let msg = document.createElement('div');
+    let header = document.createElement('div');
+    header.classList.add('message-header');
+    let body = document.createElement('div');
+    body.classList.add('message-body');
+    msg.appendChild(header);
+    msg.appendChild(document.createElement('hr'));
+    msg.appendChild(body);
+    let date = (new Date(m.message.date)).toUTCString().slice(0, -3);
+
+    if(m.message.from_id === User.id){
+      //My Message      
+      msg.classList.add("my-message-bubble"); 
+      header.innerHTML = `You <br> ${date}`;  
+      body.innerText = m.message.content;
+      chatMessagesElement.insertBefore(msg, chatMessagesElement.childNodes[0]);
+    }else if(m.message.to_id === User.id){
+      //Mate's message
+      if(document.getElementById('user-messages-container').style.display === 'block'){
+        msg.classList.add("mate-message-bubble");
+        header.innerHTML = `${m.message.from_nick_name} <br> ${date}`;
+        body.innerText = m.message.content;
+        chatMessagesElement.insertBefore(msg, chatMessagesElement.childNodes[0]);
+      }else{
+        let users = document.querySelectorAll('.user-element-nick-name');  
+        for(let i = 0; i<users.length; i++ ){
+          if(users[i].innerText === m.message.from_nick_name){
+            users[i].click();
+            break;            
+          }
+        }
+      }
+    }
+  }
+}
+
 function getMessages(chat_mate_id){
+
+  //Guest
+  if(User.id === -1) {
+   // const m = messages.filter(ms => ms.from_id === User.id || ms.to_id === User.id)
+    const m = messages.filter(ms => (ms.from_id === User.id && ms.to_id === chat_mate_id) || (ms.from_id === chat_mate_id && ms.to_id === User.id))
+    const data = {
+      chat_mate_id,
+      error: null,
+      messages: m,
+      user_id: -1
+    }
+    renderMessages(data);
+    return;
+  }
+
+
   let session_id = getCookie(JSESSIONID);
 
   if (!session_id) {
@@ -775,7 +908,7 @@ function getMessages(chat_mate_id){
       showSignUpError(data.error);
     }else{
        if(data.messages.length>0){
-        renderMessages(data);     
+         renderMessages(data);     
        }else{
         // Handle last page of messages
         let chatMessagesElement = document.getElementById('chat-messages');
@@ -797,7 +930,7 @@ function renderMessages(data){
   let chatMessagesElement = document.getElementById('chat-messages');
 
   data.messages.forEach(m => {
-    
+
     let msg = document.createElement('div');
     let header = document.createElement('div');
     header.classList.add('message-header');
@@ -805,8 +938,7 @@ function renderMessages(data){
     body.classList.add('message-body');
     msg.appendChild(header);
     msg.appendChild(document.createElement('hr'));
-    msg.appendChild(body);
-    
+    msg.appendChild(body);    
 
     let date = (new Date(m.date)).toUTCString().slice(0, -3);
 
@@ -828,7 +960,7 @@ function renderMessages(data){
       msg.classList.add("kgb-message-bubble");
       header.innerHTML = `kgb <br> ${date}`;
       body.innerText = m.content;
-    }    
+    }   
    
     chatMessagesElement.appendChild(msg);
   });
@@ -1144,4 +1276,267 @@ function createNewCommentSection(){
     <input id="new-comment-submit-button" class="new-post-submit-button" type="button" value="Comment">
   </div>     
 `
+}
+
+function renderGuestPage(){
+    const user = {
+      id: -1,
+      nick_name: "Guest"
+    }
+    
+    const posts = guestData.posts.sort((a,b) =>{
+      if(a.id < b.id){
+        return 1
+      }
+      return -1;
+    })
+
+    //Rendering main page
+    document.body.style.backgroundColor = '#fff';
+    //Nav Bar
+    let navBarHtml = createNavBar(user);
+    //List of active users
+    let contentActiveUsers = `<div id="active-users"></div>`;
+    //Posts
+    let contentPosts = `<div class="posts-container" id="posts-container">`;    
+    if(posts.length == 0){
+      contentPosts+=`<div class="no-posts-message">No Posts Yet</div>`
+    }
+    posts.forEach(post => {contentPosts += createPostElenemt(post, true) });    
+    contentPosts+=`</div>`;
+    //Messages
+    let contentMessages = createMessagesSection();
+    //Work window container
+    let  contentworkingWindow = `
+    <div class="working-window">
+        ${contentActiveUsers}
+        ${contentPosts}
+        ${contentMessages}   
+    </div>`;
+    let mainWindow = `
+    <div class="main-container">
+    ${navBarHtml}
+    ${contentworkingWindow}
+    </div>`
+    document.body.innerHTML = mainWindow;
+    document.getElementById('navigation-controls-sign-out').addEventListener('click', () => {
+      renderLogInForm();
+    });
+    document.getElementById('navigation-controls-new-post').addEventListener('click', () => {
+
+      //Rendering new post page
+      document.body.style.backgroundColor = '#fff'; 
+      //Nav Bar
+      let content = createNavBar(user);
+      //Categories select
+
+      let categoriesElements = `
+      <select  name="list_categories" id="list_categories">
+      <option value="Add Category:">Add Category:</option>
+      </select>
+      <br>
+      <ul id="selected_categories"></ul>
+      `;
+
+      //New Post Form
+        content += `
+          <div class="new-post-container">
+            ${categoriesElements}
+            <span id="new-post-error-message"></span>
+            <textarea id="new-post-textarea" class="new-post-textarea" name="new-post" rows="10" placeholder="Type your post here..."></textarea> 
+            <div class="new-post-submit-button-container">
+              <input id="new-post-submit-button" class="new-post-submit-button" type="button" value="Post">
+            </div>   
+          </div>`;
+
+          document.body.innerHTML = content;
+
+          let j = guestData.categories;
+          let listCategories = document.getElementById('list_categories');
+          let options = `<option value="Add Category:">Add Category:</option>`;
+          j.forEach(category => {
+            options+=` <option value="${category}">${category}</option>`;
+          });
+          listCategories.innerHTML = options;
+
+          document.getElementById('navigation-controls-sign-out').addEventListener('click', () => {
+            renderLogInForm();
+          });
+
+          document.getElementById('navigation-controls-new-post').style.display = 'none';
+
+          document.getElementById('new-post-submit-button').addEventListener('click', () => {
+            let content = document.getElementById('new-post-textarea').value;
+            let selectedCategories = document.getElementById('selected_categories').children;
+            let categories = [];
+            for(let i = 0; i< selectedCategories.length; i++){
+              categories.push(selectedCategories[i].textContent.trim());
+            }
+            const d = new Date();
+            const date = d.getTime();
+            
+            const id = posts.length === 0 ? 1 : posts[0].id + 1;
+
+            const post = {
+              id,
+              user_id: user.id,
+              nick_name: user.nick_name,
+              number_of_comments: 0,
+              date,
+              content,
+              categories
+            }
+            guestData.posts.push(post);
+            renderGuestPage();
+          }); 
+
+          document.getElementById('list_categories').addEventListener('input', onInput);  
+          document.getElementById('selected_categories').addEventListener('click', e => {
+            if(e.target.tagName === 'li'){
+              removeElementFromList(e.target.innerText);
+            }
+          });
+
+          document.getElementById('navigation-controls-home').addEventListener('click', ()=>{
+            renderGuestPage();
+          });
+
+   });
+
+   document.getElementById('posts-container').addEventListener('click', (event)=>{
+      
+    let el = event.target;
+
+    do{       
+      if(el.className ==='post-container clickable-box'){
+        let postId = el.dataset.id;
+        if(postId){
+          
+          //Check if comment section is already open
+          const commentsContainer = document.querySelector('.comments-container');
+          if(commentsContainer){
+            renderGuestPage();
+            return;
+          }            
+          
+          let postElement = el;
+          //Rendering main page
+          document.body.style.backgroundColor = '#fff';
+
+          //Get comments
+          let commentsHtml = '';
+          let comments = [];        
+          if(guestData.comments) {
+            comments = (guestData.comments.filter(comment => comment.post_id == postId)).sort((a,b) => {
+              if(a.date < b.date) {
+                return 1;
+              }
+              return -1;
+            });
+            comments.forEach(comment => {
+              commentsHtml += createCommentElement(comment)
+            });
+          }
+
+          if(commentsHtml === ''){
+              commentsHtml = 'No comments yet'
+          }
+          //Create comment section
+          let newCommentElement = createNewCommentSection();
+
+          let middleSection = `
+              <div class="middle-section">            
+                ${postElement.outerHTML}
+                <div class="comments-container">${commentsHtml}</div> 
+                <span id="new-comment-error"></span>                     
+                <div class="new-comment-section">${newCommentElement}</div>         
+              </div>     
+          `;
+
+          document.getElementById('posts-container').innerHTML = middleSection;
+
+          document.getElementById('new-comment-submit-button').addEventListener('click', event=>{
+            let content = document.getElementById('new-comment-textarea').value;
+           
+            const d = new Date();
+            const date = d.getTime();            
+            const id = comments.length === 0 ? 1 : comments[0].id + 1;
+                      
+            const comment = {
+              id,
+              post_id: parseInt(postId),
+              user_id: user.id,
+              user_nick_name: user.nick_name,
+              date,
+              content
+            }
+            guestData.comments.push(comment);
+            guestData.posts.find(post => post.id == postId).number_of_comments += 1;
+            renderGuestPage();
+
+          });
+
+          document.getElementById('navigation-controls-sign-out').addEventListener('click', () => {
+            renderLogInForm();
+          });
+
+          document.getElementById('navigation-controls-home').addEventListener('click', ()=>{
+            renderGuestPage();
+          });
+
+          break;
+        }
+      }
+      const id = el.dataset.id;
+      if(id) {
+        renderGuestPage();
+        break;
+      }
+
+      el = el.parentElement;
+      if(el==null) break;
+    }while(el.id !='posts-container')
+  });
+
+  document.getElementById('send-message-button').addEventListener('click', () =>{
+    const textArea = document.getElementById('new-message-text-area');
+    let content =textArea.value;
+    let to_id = parseInt(document.getElementById('chat-messages').dataset.to_id);
+
+    const date = (new Date()).getTime();    
+    let id = 1;
+    if(messages && messages.length > 0) {
+      id = (messages.sort((a,b) => {
+        if(a.id<b.id){
+          return 1
+        }
+        return -1;
+      }))[0].id + 1;
+    }    
+
+    const m = {      
+        content,
+        date,
+        from_id: -1,
+        from_nick_name : "Guest",
+        id,
+        to_id: to_id      
+    }
+    messages.push(m);
+
+    const ms = messages.filter(ms => (ms.from_id === User.id && ms.to_id === to_id) || (ms.from_id === to_id && ms.to_id === User.id))
+    console.log('ms ', ms)
+    
+    const data = {
+      chat_mate_id: to_id,
+      error: null,
+      messages: ms,
+      user_id: -1
+    }
+    const el = document.querySelector('#chat-messages');
+    el.innerHTML = '';
+    renderMessages(data);
+    textArea.value = '';
+  });
+
 }
